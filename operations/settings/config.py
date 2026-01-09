@@ -48,7 +48,7 @@ class DatabaseSettings(BaseSettings):
     @property
     def session_database_url(self) -> str | None:
         """动态构建postgresql异步连接字符串，未配置则返回None"""
-        if not all([self.session_db_host, self.main_db_password, self.session_db_name]):
+        if not all([self.session_db_host, self.session_db_password, self.session_db_name]):
             return None
         return (f"postgresql://{self.session_db_user}:{self.session_db_password}@"
                 f"{self.session_db_host}:{self.session_db_port}/{self.session_db_name}")
