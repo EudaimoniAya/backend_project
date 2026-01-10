@@ -1,6 +1,6 @@
 """
 配置模块入口，
-从这里导入`Settings`对象以在整个应用中使用配置。
+从这里导入`Settings`类实例以在整个应用中使用配置。
 """
 from functools import lru_cache
 from .config import Settings

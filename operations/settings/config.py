@@ -21,6 +21,11 @@ class EnvironmentEnum(str, Enum):
     PRODUCTION = 'production'
 
 
+class LogSettings(BaseSettings):
+    """日志相关配置组"""
+    pass
+
+
 class DatabaseSettings(BaseSettings):
     """数据库相关配置组"""
 
@@ -54,7 +59,7 @@ class DatabaseSettings(BaseSettings):
                 f"{self.session_db_host}:{self.session_db_port}/{self.session_db_name}")
 
 
-class Settings(DatabaseSettings):
+class Settings(DatabaseSettings, LogSettings):
     """总配置管理类"""
 
     # --- 应用基础配置 ---
