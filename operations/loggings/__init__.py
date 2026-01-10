@@ -29,4 +29,4 @@ _default_logger_instance = get_logger()
 logger = _default_logger_instance.logger
 log_func = SimpleLogger.log_func
 
-__all__ = ['logger', 'log_func', "get_logger", "SimpleLogger"]
+__all__ = ['logger', 'log_func']

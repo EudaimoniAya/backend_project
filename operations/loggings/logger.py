@@ -1,3 +1,4 @@
+import atexit
 import sys
 from pathlib import Path
 from functools import wraps
@@ -31,6 +32,9 @@ class SimpleLogger(object):
         # 打印初始化信息
         loguru_logger.info("日志系统初始化完成")
         loguru_logger.info(f"日志文件保存在: {self.log_dir.absolute()}")
+
+        # 程序退出时自动释放所有处理器
+        atexit.register(self.close)
 
     def _setup_console(self):
         """设置控制台日志输出"""
@@ -88,11 +92,12 @@ class SimpleLogger(object):
 
     @staticmethod
     def log_func(func):
-        """函数调用日志装饰器"""
+        """函数调用日志装饰器，用于自动记录函数执行情况、耗时和异常"""
         @wraps(func)
         def wrapper(*args, **kwargs):
-            func_name = func.__name__
-            module_name = func.__module__
+            """func为被装饰器装饰的函数"""
+            func_name = func.__name__       # 函数名
+            module_name = func.__module__   # 模块名
 
             start_time = time.time()
             loguru_logger.debug(f"开始执行函数: {module_name}.{func_name}")
@@ -116,14 +121,34 @@ class SimpleLogger(object):
         return wrapper
 
     def close(self):
-        """关闭所有日志处理器，释放文件锁"""
-        for handler_id in self._handler_ids:
+        """
+            关闭所有日志处理器，释放文件锁
+            Windows的文件锁定很严格，在没有close()时，文件如果被打开被锁定的话，即使程序结束后，文件仍可能锁定几秒
+            而有close()方法时，可以通过调用它显式地立即释放文件锁
+        """
+        # 如果已经关闭，直接返回
+        if not self._handler_ids:
+            return
+
+        # 记录要移除的处理器ID
+        handler_ids_to_remove = list(self._handler_ids)
+
+        # 先清空列表，避免重复操作
+        self._handler_ids.clear()
+
+        # 尝试移除每个处理器
+        for handler_id in handler_ids_to_remove:
             try:
                 loguru_logger.remove(handler_id)
+            except ValueError as e:
+                # 处理器已经被移除的情况，这是预期的
+                # 可以静默处理，不打印异常
+                if "no existing handler" not in str(e):
+                    # 如果是其他ValueError，打印
+                    print(f"移除处理器 {handler_id} 时出现异常: {e}")
             except Exception as e:
-                # 静默处理，避免干扰正常流程
-                pass
-        self._handler_ids.clear()
+                # 其他异常，打印日志
+                print(f"移除处理器 {handler_id} 时出现未知异常: {e}")
 
     def __enter__(self):
         """支持上下文管理器"""

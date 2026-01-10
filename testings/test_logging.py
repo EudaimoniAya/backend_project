@@ -7,7 +7,6 @@ import os
 import time
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-
 from operations.loggings import SimpleLogger, get_logger
 
 
