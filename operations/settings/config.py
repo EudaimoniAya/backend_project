@@ -21,9 +21,10 @@ class EnvironmentEnum(str, Enum):
     PRODUCTION = 'production'
 
 
-class LogSettings(BaseSettings):
-    """日志相关配置组"""
-    pass
+class AIServerSettings(BaseSettings):
+    """AI相关配置组"""
+    deepseek_api_key: str = Field(...)
+    deepseek_api_base: str | None = Field("https://api.deepseek.com")
 
 
 class DatabaseSettings(BaseSettings):
@@ -59,7 +60,7 @@ class DatabaseSettings(BaseSettings):
                 f"{self.session_db_host}:{self.session_db_port}/{self.session_db_name}")
 
 
-class Settings(DatabaseSettings, LogSettings):
+class Settings(DatabaseSettings, AIServerSettings):
     """总配置管理类"""
 
     # --- 应用基础配置 ---
