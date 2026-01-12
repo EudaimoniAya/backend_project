@@ -66,7 +66,7 @@ class Settings(DatabaseSettings, AIServerSettings):
     # --- 应用基础配置 ---
     project_name: str = "backendProject"
     environment: EnvironmentEnum = Field(
-        default=EnvironmentEnum.PRODUCTION,
+        default=EnvironmentEnum.DEVELOPMENT,
         description="运行环境（默认为development），只有development、staging、production三种。"
     )
     debug: bool = Field(default=True, description="调试模式开关，为True时会打印详细信息，生产环境应关闭。")
@@ -86,7 +86,7 @@ class Settings(DatabaseSettings, AIServerSettings):
 
     # --- 验证器 ---
     @field_validator('debug', mode='after')
-    def validate_debug_in_production(self, v: bool, info: ValidationInfo) -> bool:
+    def validate_debug_in_production(cls, v: bool, info: ValidationInfo) -> bool:
         """
         确保在生产环境中 debug 模式为 False。
         :param v:
