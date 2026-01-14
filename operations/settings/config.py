@@ -1,5 +1,6 @@
 from datetime import timedelta
 from pathlib import Path
+from typing import Dict
 
 from pydantic import Field, field_validator
 from enum import Enum
@@ -21,10 +22,45 @@ class EnvironmentEnum(str, Enum):
     PRODUCTION = 'production'
 
 
+class ModelPricing(BaseSettings):
+    """单个模型的定价配置"""
+    input_price_per_1k : float = Field(..., description="每1000个输入token的价格（美元）")
+    output_price_per_1k: float = Field(..., description="每1000个输出token的价格（美元）")
+    # 如果是多模态，考虑其他信息输入方式
+
+
 class AIServerSettings(BaseSettings):
     """AI相关配置组"""
+    # --- API密钥配置 ---
     deepseek_api_key: str = Field(...)
     deepseek_api_base: str | None = Field("https://api.deepseek.com")
+
+    # --- 模型计费配置 ---
+    model_pricing: Dict[str, ModelPricing] = Field(
+        default_factory=lambda:{
+            "deepseek-chat": ModelPricing(
+                input_price_per_1k=0.00055,
+                output_price_per_1k=0.0017,
+            ),
+            "deepseek-reasoner": ModelPricing(
+                input_price_per_1k=0.00055,
+                output_price_per_1k=0.0017,
+            ),
+            # 之后可在此扩展更多模型
+        },
+        description="各模型的Token计价标准"
+    )
+
+    # 获取价格的辅助方法
+    def get_pricing(self, model_name: str) -> ModelPricing:
+        """安全地获取模型定价，如果未配置则返回一个默认值"""
+        return self.model_pricing.get(
+            model_name,
+            ModelPricing(
+                input_price_per_1k=0.0025,  # 设置较高默认值，确保成本被注意到
+                output_price_per_1k=0.01,
+            )
+        )
 
 
 class DatabaseSettings(BaseSettings):

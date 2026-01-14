@@ -30,7 +30,7 @@ backendProject/
 │   ├── logger.py          # 日志系统
 │   ├── settings/          # 配置管理 
 │   │   └── config.py 
-│   └── cost_tracker.py    # AI成本追踪
+│   └── cost_tracking.py    # AI成本追踪
 ├── models/                # ORM模型
 │   ├── product.py
 │   ├── user.py
