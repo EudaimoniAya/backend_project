@@ -27,7 +27,8 @@
 backendProject/
 ├── operations/            # 运维层（合并）
 │   ├── monitoring.py      # 应用+AI监控
-│   ├── logger.py          # 日志系统
+│   ├── loggings           # 日志系统
+│   │   └── logger.py 
 │   ├── settings/          # 配置管理 
 │   │   └── config.py 
 │   └── cost_tracking.py    # AI成本追踪
@@ -42,20 +43,34 @@ backendProject/
 ├── core/                  # 核心层
 │   ├── database.py        # 数据库引擎
 │   ├── session_factory.py
-│   └── agent/             # AI核心组件
-│       ├── llm_client.py     # 执行层：LLM客户端
-│       ├── tool_executor.py  # 执行层：工具执行器
-│       ├── agents/           # 智能体层
+│   └── ai/                   # AI核心（重构为清晰的层级）
+│       ├── data/          # ⭐数据层（是智能化的数据基础设施层）
+│       │   ├── models/
+│       │   │   ├── product_vector.py   # 商品向量模型 对应限界上下文的AI上下文 
+│       │   │   └── ai_session.py       # AI会话模型
+│       │   ├── stores/         # AI数据存储（相当于AI的仓储层）
+│       │   │   ├── product_vector_store.py   # 商品向量存储
+│       │   │   ├── ai_session_store.py       # AI会话存储
+│       │   │   └── knowledge_base.py         # 知识库
+│       │   └── vector_store.py     # 向量数据库客户端
+│       ├── execution/     # ⭐执行层
+│       │   ├── llm_client.py
+│       │   ├── tool_executor.py
+│       │   └── api_clients.py
+│       ├── agent/         # ⭐智能体层
+│       │   ├── base_agent.py
 │       │   ├── product_agent.py
 │       │   ├── customer_agent.py
 │       │   └── recommendation_agent.py
-│       ├── tools/            # 工具注册与实现
-│       │   ├── registry.py
-│       │   ├── inventory_tools.py
-│       │   └── customer_tools.py
-│       └── knowledge/        # 数据层
-│           ├── vector_store.py
-│           └── session_store.py
+│       └── tools/         # ⭐智能体层（工具部分）
+│           ├── registry.py
+│           ├── inventory_tools.py
+│           └── customer_tools.py
+├── orchestration/         # ⭐新增：编排层（独立出来）
+│   ├── orchestrator.py    # 主编排器
+│   ├── task_decomposer.py # 任务分解器
+│   ├── workflow_engine.py # 工作流引擎
+│   └── agent_scheduler.py # 智能体调度器
 ├── repositories/          # 仓储层
 │   ├── product_repo.py
 │   ├── user_repo.py
@@ -65,12 +80,13 @@ backendProject/
 │   │   ├── order_service.py
 │   │   └── user_service.py
 │   └── ai/              # AI服务（原表现层）
-│       ├── orchestration.py    # ⭐编排层上移到这里
-│       ├── agent_orchestrator.py
 │       └── chat_service.py
-├── routers/              # 路由层（表现层）
-│   ├── product_routes.py
-│   └── order_routes.py
+├── api/                  # ⭐表现层（重命名routers为api更清晰）
+│   ├── routers/          # 路由定义
+│   │   ├── product.py
+│   │   └── order.py
+│   ├── middleware/       # 中间件
+│   └── dependencies/     # 依赖注入
 └── main.py
 ```
 
