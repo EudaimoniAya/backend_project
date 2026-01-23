@@ -95,13 +95,13 @@ class ProductVectorStore:
         Returns:
             (商品向量列表，总数量)
         """
-        logger(f"开始查询所有商品信息！")
+        logger.info(f"开始查询所有商品信息！")
         async with self.session.begin():
             # 获取总数
             count_stmt = select(func.count()).select_from(ProductVector)
             count_result = await self.session.execute(count_stmt)
             total = int(count_result.scalar_one())
-            logger(f"商品总数为: {total}")
+            logger.info(f"商品总数为: {total}")
 
             # 获取分页数据
             data_stmt = select(ProductVector).offset(offset).limit(limit)

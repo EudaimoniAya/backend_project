@@ -25,7 +25,7 @@ class ProductVector(Base):
     description: Mapped[str] = mapped_column(Text, nullable=False, comment="商品描述")
 
     # 向量字段
-    embedding: Mapped[List[float]] = mapped_column(Vector(768), nullable=False, comment="向量数据（JSON格式）")
+    embedding: Mapped[List[float]] = mapped_column(Vector(768), nullable=False, comment="向量数据")
 
     # 时间戳
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())

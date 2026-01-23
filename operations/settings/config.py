@@ -95,6 +95,21 @@ class DatabaseSettings(BaseSettings):
         return (f"postgresql://{self.session_db_user}:{self.session_db_password}@"
                 f"{self.session_db_host}:{self.session_db_port}/{self.session_db_name}")
 
+    # --- 商品向量数据库（postgresql，存储商品向量） ---
+    product_vector_db_host: str = Field("localhost")
+    product_vector_db_port: int = Field(55432)
+    product_vector_db_user: str = Field("postgres")
+    product_vector_db_password: str = Field(...)
+    product_vector_db_name: str = Field(...)
+
+    @property
+    def product_vector_database_url(self) -> str | None:
+        """动态构建postgresql异步连接字符串，未配置则返回None"""
+        if not all([self.product_vector_db_host, self.product_vector_db_password, self.product_vector_db_name]):
+            return None
+        return (f"postgresql+asyncpg://{self.product_vector_db_user}:{self.product_vector_db_password}@"
+                f"{self.product_vector_db_host}:{self.product_vector_db_port}/{self.product_vector_db_name}")
+
 
 class Settings(DatabaseSettings, AIServerSettings):
     """总配置管理类"""
