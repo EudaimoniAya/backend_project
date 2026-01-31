@@ -2,12 +2,10 @@
 此处（`core/ai/data/stores/product_vector_store.py`）定义了商品向量的存储类
 实现了基本的 CRUD 操作
 """
-from typing import List, Tuple, Dict, Any
-
-from sqlalchemy import select, func, delete
-
-from operations.loggings import logger, log_func
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func, delete
+from typing import List, Tuple, Dict, Any
+from operations.loggings import logger, log_func
 
 from core.ai.data.models.product_vector import ProductVector
 
