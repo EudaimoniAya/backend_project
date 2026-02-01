@@ -1,7 +1,6 @@
 """
 此处（`core/ai/data/models/product_vector.py`）定义了商品实体在AI上下文的向量模型
 """
-import json
 from datetime import datetime
 from typing import List
 

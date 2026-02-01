@@ -8,7 +8,6 @@ from datetime import datetime
 
 from sqlalchemy import Integer, String, Text, DateTime, func, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 from core.database.base import Base
 
 if TYPE_CHECKING:
@@ -24,7 +23,7 @@ class Product(Base):
                                     comment="商品id")
 
     # --- 核心属性（同步至AI上下文）---
-    title: Mapped[str] = mapped_column(String(200), nullable=False, comment="商品标题")
+    title: Mapped[str] = mapped_column(String(200), nullable=False, index=True, comment="商品标题")
     description: Mapped[str] = mapped_column(Text, nullable=False, comment="商品描述")
     # 此处使用分类表，AI上下文中则存储完整的类别名
     category_id: Mapped[int] = mapped_column(Integer,
@@ -46,8 +45,17 @@ class Product(Base):
 
     # --- 时间戳 ---
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(),
+                                                 index=True, onupdate=func.now())
 
     # --- ORM关系 ---
-    category: Mapped['Category'] = relationship('Category', back_populates='products', lazy='joined')
-    seller: Mapped['User'] = relationship('User', back_populates='products', lazy='joined')
+    category: Mapped['Category'] = relationship('Category',
+                                                back_populates='products',
+                                                lazy='joined')
+    seller: Mapped['User'] = relationship('User',
+                                          back_populates='products',
+                                          lazy='joined')
+
+    def __repr__(self):
+        return (f'<Product(id={self.id}, title="{self.title}, seller={self.seller_id}"'
+                f'category_id={self.category_id}, price={self.price}, status={self.status})>')

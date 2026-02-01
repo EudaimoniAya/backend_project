@@ -3,9 +3,9 @@
 其中，表 categories.id 作为商品表的外键
 """
 from typing import List, TYPE_CHECKING
+
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 from core.database.base import Base
 
 if TYPE_CHECKING:
@@ -18,12 +18,13 @@ TYPE_CHECKING是typing模块的特殊常量，在静态类型检查时（由mypy
 在定义继承自Base的类时，SQL alchemy就已经将其注册到一个全局的类注册表中，通常由Base.metadata维护
 """
 
+
 class Category(Base):
     __tablename__ = 'categories'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True,
                                     comment="分类id")
-    name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True,
+    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True,
                                       comment="分类名称")
 
     # --- 反向关系 ---
@@ -41,4 +42,9 @@ class Category(Base):
     所以在定义模型关系时，对另一方模型的引用一律使用单引号字符串形式，它是SQL alchemy的标准做法
     另外，足够模型导入查找不依赖于Python的import语句，只依赖于类是否被定义并注册到同一个Base的元数据中
     """
-    products: Mapped[List['Product']] = relationship()
+    products: Mapped[List['Product']] = relationship('Product',
+                                                     back_populates='category',
+                                                     lazy='dynamic')
+
+    def __repr__(self):
+        return f'<Category(id={self.id}, name="{self.name}")>'
