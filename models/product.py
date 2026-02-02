@@ -32,10 +32,10 @@ class Product(Base):
                                              comment="商品分类表id")
 
     # --- 交易属性（业务上下文独有）---
-    price: Mapped[int] = mapped_column(Integer, nullable=False, comment="商品价格")
+    price: Mapped[int] = mapped_column(Integer, nullable=False, comment="商品价格，单位：分")
     stock: Mapped[int] = mapped_column(Integer, nullable=False, comment="商品库存")
     status: Mapped[str] = mapped_column(String(20), nullable=False, default='draft',
-                                        comment="用于业务状态控制：草稿draft、上架active、下架inactive、缺货scarce")
+                                        comment="用于业务状态控制：草稿draft、上架active、下架inactive、缺货out_of_stock")
 
     # --- 关系属性 ---
     seller_id: Mapped[int] = mapped_column(Integer,
@@ -48,7 +48,7 @@ class Product(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(),
                                                  index=True, onupdate=func.now())
 
-    # --- ORM关系 ---
+    # --- ORM关系（正向频繁访问用joined，反向大量数据用dynamic） ---
     category: Mapped['Category'] = relationship('Category',
                                                 back_populates='products',
                                                 lazy='joined')

@@ -32,7 +32,7 @@ class User(Base):
     # --- 业务信息 ---
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True,
                                           comment='用户名')
-    email: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True,
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True,
                                        comment='用户邮箱')
     _password: Mapped[str] = mapped_column("password", String(200), nullable=False,
                                            comment='用户密码')

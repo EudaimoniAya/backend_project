@@ -4,7 +4,7 @@
 from datetime import datetime
 from typing import List
 
-from sqlalchemy import Integer, String, Text, DateTime, func
+from sqlalchemy import Integer, String, Text, DateTime, func, Index
 from sqlalchemy.orm import Mapped, mapped_column
 from pgvector.sqlalchemy import Vector
 
@@ -21,7 +21,9 @@ class ProductVector(Base):
 
     # --- 业务关联 ---
     product_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True,
-                                            comment="原始商品ID")
+                                            comment="原始商品id")
+    seller_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True,
+                                           comment="商家id")
 
     # --- 内容与块信息 ---
     content: Mapped[str] = mapped_column(Text, nullable=False,
@@ -42,3 +44,8 @@ class ProductVector(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now(),
                                                  comment="同步时间，用于增量更新判断")
+
+    __table_args__ = (
+        # 复合索引，优化按商品和分类的查询
+        Index('idx_product_category', 'product_id', 'category'),
+    )
