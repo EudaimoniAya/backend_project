@@ -1,5 +1,17 @@
 .env
 .idea/
 testings/
-alembic/
-alembic.ini
+
+# 忽略所有环境的配置文件
+alembic_mysql/alembic.ini
+alembic_pg/alembic.ini
+
+# 保留MySQL环境的迁移代码
+!alembic_mysql/env.py
+!alembic_mysql/script.py.mako
+!alembic_mysql/versions/
+
+# 保留PostgreSQL环境的迁移代码
+!alembic_pg/env.py
+!alembic_pg/script.py.mako
+!alembic_pg/versions/

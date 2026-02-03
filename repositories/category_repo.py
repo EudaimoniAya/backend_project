@@ -1,4 +1,3 @@
-# repository/category_repository.py
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload

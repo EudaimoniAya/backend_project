@@ -1,5 +1,6 @@
 """
-此处（`core/models/__init__.py`）负责统一导入所有 Base 模型的子类，用于 alembic 模型迁移
+迁移聚合层 - 仅为Alembic迁移提供入口
+
+mysql_models.py: 聚合所有业务模型（MySQL）
+pg_models.py:    聚合所有AI向量模型（PostgreSQL）
 """
-from core.database.base import Base
-from core.ai.data.models.product_vector import ProductVector

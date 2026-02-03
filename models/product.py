@@ -19,7 +19,7 @@ class Product(Base):
     __tablename__ = 'products'
 
     # --- 主键 ---
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, auto_increment=True,
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True,
                                     comment="商品id")
 
     # --- 核心属性（同步至AI上下文）---

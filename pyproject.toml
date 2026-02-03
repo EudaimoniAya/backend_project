@@ -1,0 +1,18 @@
+[tool.mypy]
+# 1. 启用基本类型检查
+warn_unused_configs = true
+check_untyped_defs = true
+disallow_incomplete_defs = true
+
+# 2. 精准禁用 SQLAlchemy 列比较的类型冲突警告
+disable_error_code = "comparison-overlap"
+
+# 3. 针对 SQLAlchemy 模型的特殊配置
+[[tool.mypy.overrides]]
+module = [
+    "models.*",
+    "core.ai.data.models.*",
+    "repository.*"
+]
+# 在这些模块中，允许表达式返回与声明不同的类型（SQLAlchemy 动态特性的核心）
+allow_any_expr = true

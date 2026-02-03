@@ -80,6 +80,13 @@ class DatabaseSettings(BaseSettings):
                 f"{self.main_db_host}:{self.main_db_port}/{self.main_db_name}?"
                 f"charset=utf8mb4")
 
+    @property
+    def main_database_sync_url(self) -> str:
+        """动态构建MySQL同步连接字符串（用于Alembic迁移），未配置则返回None"""
+        return (f"mysql+pymysql://{self.main_db_user}:{self.main_db_password}@"
+                f"{self.main_db_host}:{self.main_db_port}/{self.main_db_name}?"
+                f"charset=utf8mb4")
+
     # --- 会话数据库（postgresql，存储agent上下文） ---
     session_db_host: str = Field("localhost")
     session_db_port: int = Field(5432)
@@ -92,7 +99,15 @@ class DatabaseSettings(BaseSettings):
         """动态构建postgresql异步连接字符串，未配置则返回None"""
         if not all([self.session_db_host, self.session_db_password, self.session_db_name]):
             return None
-        return (f"postgresql://{self.session_db_user}:{self.session_db_password}@"
+        return (f"postgresql+asyncpg://{self.session_db_user}:{self.session_db_password}@"
+                f"{self.session_db_host}:{self.session_db_port}/{self.session_db_name}")
+
+    @property
+    def session_database_sync_url(self) -> str | None:
+        """动态构建postgresql同步连接字符串（用于Alembic迁移），未配置则返回None"""
+        if not all([self.session_db_host, self.session_db_password, self.session_db_name]):
+            return None
+        return (f"postgresql+psycopg2://{self.session_db_user}:{self.session_db_password}@"
                 f"{self.session_db_host}:{self.session_db_port}/{self.session_db_name}")
 
     # --- 商品向量数据库（postgresql，存储商品向量） ---
@@ -108,6 +123,14 @@ class DatabaseSettings(BaseSettings):
         if not all([self.product_vector_db_host, self.product_vector_db_password, self.product_vector_db_name]):
             return None
         return (f"postgresql+asyncpg://{self.product_vector_db_user}:{self.product_vector_db_password}@"
+                f"{self.product_vector_db_host}:{self.product_vector_db_port}/{self.product_vector_db_name}")
+
+    @property
+    def product_vector_database_sync_url(self) -> str | None:
+        """动态构建postgresql同步连接字符串（用于Alembic迁移），未配置则返回None"""
+        if not all([self.product_vector_db_host, self.product_vector_db_password, self.product_vector_db_name]):
+            return None
+        return (f"postgresql+psycopg2://{self.product_vector_db_user}:{self.product_vector_db_password}@"
                 f"{self.product_vector_db_host}:{self.product_vector_db_port}/{self.product_vector_db_name}")
 
 

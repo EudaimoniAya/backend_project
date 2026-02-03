@@ -52,8 +52,8 @@ class User(Base):
     )
 
     def __init__(self, *args, **kwargs):
-        super().__init__(**kwargs)
         password = kwargs.pop('password', None)
+        super().__init__(**kwargs)
         if password:
             # 使用FastAPI推荐的第三方库pwdlib加密，
             # 这里的self.password赋值操作会调用@password.setter装饰的方法

@@ -1,7 +1,5 @@
-from typing import Optional, List
-from sqlalchemy import select, update, delete, exists
+from sqlalchemy import select, exists
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import NoResultFound, IntegrityError
 from sqlalchemy.orm import selectinload
 
 from models.user import User, UserRole
