@@ -35,7 +35,7 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True,
                                        comment='用户邮箱')
     _password: Mapped[str] = mapped_column("password", String(200), nullable=False,
-                                           comment='用户密码')
+                                           comment='用户密码（加密）')
 
     role: Mapped[UserRole] = mapped_column(
         Enum(UserRole),

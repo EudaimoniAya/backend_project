@@ -1,24 +1,25 @@
-from pydantic import BaseModel, EmailStr, constr
-from models.user import UserRole
+from datetime import datetime
+
+from pydantic import BaseModel, EmailStr, Field
 
 
-class UserCreateSchema(BaseModel):
-    """
-    注册成功时，将规范的RegisterIn数据提取必要的一部分作为创建用户数据，和ORM模型对接的Schema
-    具体的对接就是通过BaseModel子类继承的model_dump()，将这个字典通过**kwargs传给ORM模型
-    """
-    username: constr(min_length=3, max_length=50)
+class UserBaseSchema(BaseModel):
+    """用户基础Schema"""
+    username: str = Field(..., min_length=3, max_length=50)
     email: EmailStr
-    password: constr(min_length=8,  max_length=100)
-    role: UserRole = UserRole.BUYER  # 默认是买家
 
-    model_config = {
-        "json_schema_extra": {
-            "example": {
-                "username": "john_doe",
-                "email": "john@example.com",
-                "password": "securepassword123",
-                "role": "buyer"
-            }
-        }
-    }
+
+class UserCreateSchema(UserBaseSchema):
+    """创建用户Schema"""
+    password: str = Field(..., min_length=8)
+    role: str = Field("buyer", pattern="^(buyer|seller)$")
+
+
+class UserResponseSchema(UserBaseSchema):
+    """用户响应Schema（不包含密码）"""
+    id: int
+    role: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
