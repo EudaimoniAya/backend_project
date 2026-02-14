@@ -12,4 +12,4 @@ async def get_session() -> AsyncSession:
         raise
     finally:
         await session.close()
-        AsyncScopedSession.remove()
+        await AsyncScopedSession.remove()

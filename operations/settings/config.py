@@ -12,19 +12,21 @@ from pydantic_settings import BaseSettings
 
 class EnvironmentEnum(str, Enum):
     """
-    应用基础配置的environment字段类型，只能有三个：
+    应用基础配置的environment字段类型，只能有四个：
     development     表示开发环境
+    test            表示测试环境
     staging         表示模拟生产（预发布）环境
     production      表示生产环境
     """
     DEVELOPMENT = 'development'
+    TEST = 'test'
     STAGING = 'staging'
     PRODUCTION = 'production'
 
 
 class ModelPricing(BaseSettings):
     """单个模型的定价配置"""
-    input_price_per_1k : float = Field(..., description="每1000个输入token的价格（美元）")
+    input_price_per_1k: float = Field(..., description="每1000个输入token的价格（美元）")
     output_price_per_1k: float = Field(..., description="每1000个输出token的价格（美元）")
     # 如果是多模态，考虑其他信息输入方式
 
@@ -37,7 +39,7 @@ class AIServerSettings(BaseSettings):
 
     # --- 模型计费配置 ---
     model_pricing: Dict[str, ModelPricing] = Field(
-        default_factory=lambda:{
+        default_factory=lambda: {
             "deepseek-chat": ModelPricing(
                 input_price_per_1k=0.00055,
                 output_price_per_1k=0.0017,
@@ -141,7 +143,7 @@ class Settings(DatabaseSettings, AIServerSettings):
     project_name: str = "backendProject"
     environment: EnvironmentEnum = Field(
         default=EnvironmentEnum.DEVELOPMENT,
-        description="运行环境（默认为development），只有development、staging、production三种。"
+        description="运行环境（默认为development），只有development、test、staging、production四种。"
     )
     debug: bool = Field(default=True, description="调试模式开关，为True时会打印详细信息，生产环境应关闭。")
     api_v1_str: str = Field(default="/api/v1", description="API路由前缀，用于版本管理")
@@ -171,8 +173,62 @@ class Settings(DatabaseSettings, AIServerSettings):
             raise ValueError('DEBUG模式在生产环境中必须为 False')
         return v  # 必须返回验证后的值
 
-    # --- Pydantic配置 ---
+    # --- Pydantic配置 （初期） ---
     model_config = {
         "env_file": Path(__file__).parent.parent.parent / ".env",
         "env_file_encoding": "utf-8",
     }
+
+    # model_config = SettingsConfigDict(
+    #     # 重要：env_file 现在可以是一个列表，按照顺序加载，后面的覆盖前面的
+    #     env_file=[
+    #         # 1. 首先加载项目根目录的通用 .env 文件（基础默认值）
+    #         Path(__file__).parent.parent.parent / ".env",
+    #         # 2. 然后根据 ENVIRONMENT 环境变量的值，加载环境特定文件
+    #     ],
+    #     env_file_encoding="utf-8",
+    #     # 允许通过 _env_file 属性在运行时动态地添加一个更高优先级的配置文件
+    #     extra="allow",
+    # )
+
+# # --- 新增：用于动态添加测试配置文件的内部属性 ---
+#     _test_env_file: Path | None = None
+#
+#     @classmethod
+#     def set_test_env_file(cls, file_path: Path):
+#         """
+#         专门供测试夹具（pytest）调用的方法。
+#         用于在运行测试前，设置一个最高优先级的 ..env.test 配置文件。
+#         """
+#         cls._test_env_file = file_path
+#
+#     @property
+#     def _env_file(self) -> Path | None:
+#         """
+#         动态决定要加载的‘环境特定’配置文件。
+#         Pydantic-Settings 会读取此属性。
+#         """
+#         # 优先级 1：如果设置了测试文件，则使用它（测试环境最高）
+#         if self._test_env_file and self._test_env_file.exists():
+#             return self._test_env_file
+#         # 优先级 2：根据当前的 `environment` 字段值加载对应环境文件
+#         # 注意：这里的 `self.environment` 可能来自已加载的较低优先级配置（如.env）
+#         # 但我们通过 `env_file` 列表的顺序确保了后加载的会覆盖先加载的。
+#         env_specific_file = Path(__file__).parent.parent.parent / f".env.{self.environment.value}"
+#         if env_specific_file.exists():
+#             return env_specific_file
+#         # 优先级 3：没有特定环境文件
+#         return None
+#
+#     @classmethod
+#     def reload_for_test(cls):
+#         """
+#         强制重新加载配置（打破单例在测试中的僵化）。
+#         在企业级CI中，每次测试都是全新的进程，此问题不明显。
+#         在本地重复运行测试时，此方法非常有用。
+#         """
+#         # 清除可能存在的实例缓存，促使创建新实例
+#         # 注意：这要求你的应用代码通过函数调用获取settings，而不是导入一个全局实例
+#         # 例如：使用 `get_settings()` 函数而不是直接导入 `settings` 对象
+#         if hasattr(cls, "_instance"):
+#             delattr(cls, "_instance")

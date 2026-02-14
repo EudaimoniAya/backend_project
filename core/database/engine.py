@@ -2,12 +2,7 @@
 这里将存放应用级的单例 (engine, AsyncSessionLocal)。
 它是配置（settings）到具体数据库驱动之间的桥梁，在应用启动时初始化一次。
 """
-from asyncio import current_task
-
-from sqlalchemy.ext.asyncio import (
-    create_async_engine,
-    async_sessionmaker,
-    async_scoped_session, AsyncSession)
+from sqlalchemy.ext.asyncio import create_async_engine
 from operations.settings import settings
 
 
