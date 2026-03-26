@@ -1,5 +1,13 @@
 .env
+.cursor
+.vscode
 .idea/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.venv/
 testings/
 
 # 忽略所有环境的配置文件

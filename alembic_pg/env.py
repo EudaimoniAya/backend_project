@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path
+# 将项目根目录添加到 sys.path
+sys.path.append(str(Path(__file__).parent.parent))  # 假设 env.py 在 alembic_mysql 下，根目录是上一级
+
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -11,10 +16,10 @@ from operations.settings import settings
 # access to the values within the .ini file in use.
 config = context.config
 
-# 添加连接数据库的配置
+# 添加连接数据库配置
 database_url = settings.product_vector_database_sync_url
 if database_url is None:
-    raise ValueError("DB_URI没有设置！")
+    raise ValueError("product_vector_database_sync_url 没有配置！")
 config.set_main_option("sqlalchemy.url", database_url)
 
 # Interpret the config file for Python logging.

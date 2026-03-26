@@ -23,31 +23,57 @@ class ProductVectorStore:
     async def create(
             self,
             product_id: int,
+            seller_id: int,
             title: str,
-            description: str,
-            embedding: List[float]
+            category: str,
+            content: str,
+            embedding: List[float],
+            chunk_index: int = 0,
     ) -> ProductVector:
         """
-        创建商品向量记录
+        创建商品向量记录（字段与 ProductVector ORM 一致）
         Args:
             product_id: 商品ID
+            seller_id: 商家ID
             title: 商品标题
-            description: 商品描述
+            category: 分类名称（业务侧已解析后的可读名）
+            content: 参与向量化的文本块内容
             embedding: 向量数据（768维）
+            chunk_index: 文本块序号
 
         Returns:
             ProductVector 实例
         """
         product_vector = ProductVector(
             product_id=product_id,
+            seller_id=seller_id,
             title=title,
-            description=description,
-            embedding=embedding
+            category=category,
+            content=content,
+            chunk_index=chunk_index,
+            embedding=embedding,
         )
         logger.info(f"进行商品向量记录创建，当前商品为: {product_vector}")
         async with self.session.begin():
             self.session.add(product_vector)
             return product_vector
+
+    @log_func
+    async def replace_product_chunks(
+        self,
+        product_id: int,
+        rows: List[ProductVector],
+    ) -> List[ProductVector]:
+        """
+        幂等同步：删除该商品已有向量行后写入新行（由防腐层构建 rows）。
+        """
+        async with self.session.begin():
+            await self.session.execute(
+                delete(ProductVector).where(ProductVector.product_id == product_id)
+            )
+            for row in rows:
+                self.session.add(row)
+            return rows
 
     # 查询操作
     async def get_by_id(self, vector_id: int) -> ProductVector | None:
@@ -64,19 +90,25 @@ class ProductVectorStore:
             logger.info(f"进行商品向量记录查询，当前商品为: {product_vector}")
             return product_vector
 
-    async def get_by_product_id(self, product_id: int) -> ProductVector | None:
+    async def list_by_product_id(self, product_id: int) -> List[ProductVector]:
         """
-        根据 ID 获取商品向量
-        Args:
-            product_id: 商品 ID
-
-        Returns:
-            ProductVector 实例或 None
+        获取某商品下全部向量块（按 chunk_index 排序）
         """
         async with self.session.begin():
-            stmt = select(ProductVector).where(ProductVector.product_id == product_id)
+            stmt = (
+                select(ProductVector)
+                .where(ProductVector.product_id == product_id)
+                .order_by(ProductVector.chunk_index)
+            )
             result = await self.session.execute(stmt)
-            return result.scalar_one_or_none()
+            return list(result.scalars().all())
+
+    async def get_by_product_id(self, product_id: int) -> ProductVector | None:
+        """
+        根据商品 ID 获取一条向量记录（多块时返回 chunk_index 最小的一块）
+        """
+        rows = await self.list_by_product_id(product_id)
+        return rows[0] if rows else None
 
     @log_func
     async def get_all(
@@ -209,8 +241,9 @@ class ProductVectorStore:
         # 排序和限制
         stmt = stmt.order_by(distance_func).limit(limit)
 
-        result = await self.session.execute(stmt)
-        return [(vector, distance) for vector, distance in result.all()]
+        async with self.session.begin():
+            result = await self.session.execute(stmt)
+            return [(vector, distance) for vector, distance in result.all()]
 
     async def delete_by_id(self, id: int) -> bool:
         """
@@ -224,7 +257,7 @@ class ProductVectorStore:
         stmt = delete(ProductVector).where(ProductVector.id == id)
         result = await self.session.execute(stmt)
         await self.session.commit()
-        return result.rowcount > 0
+        return result.rowcount > 0  # type: ignore
 
     async def delete_by_product_id(self, product_id: int) -> bool:
         """
@@ -238,7 +271,7 @@ class ProductVectorStore:
         stmt = delete(ProductVector).where(ProductVector.product_id == product_id)
         result = await self.session.execute(stmt)
         await self.session.commit()
-        return result.rowcount > 0
+        return result.rowcount > 0  # type: ignore
 
     # ---------- 统计 ----------
 
