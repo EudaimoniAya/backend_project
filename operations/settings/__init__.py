@@ -9,7 +9,8 @@ from .config import Settings
 @lru_cache()
 def get_settings() -> Settings:
     """获取缓存的配置单例"""
-    return Settings()
+    # 必填字段由环境变量 / .env 在运行时注入，静态类型检查无法推断
+    return Settings()  # type: ignore[call-arg]
 
 
 settings = get_settings()   # 其他模块应该导入的settings对象

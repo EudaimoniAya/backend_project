@@ -1,42 +1,50 @@
+"""pytest 全局夹具与测试前置环境。"""
+
+import os
+
+# 在导入 `operations.settings` 之前补齐必填环境变量，便于 CI 与本地无 .env 运行测试
+_env_defaults: dict[str, str] = {
+    "DEEPSEEK_API_KEY": "test",
+    "MAIN_DB_PASSWORD": "test",
+    "MAIN_DB_NAME": "test",
+    "SESSION_DB_PASSWORD": "test",
+    "SESSION_DB_NAME": "test",
+    "PRODUCT_VECTOR_DB_PASSWORD": "test",
+    "PRODUCT_VECTOR_DB_NAME": "test",
+}
+for _key, _val in _env_defaults.items():
+    os.environ.setdefault(_key, _val)
+
+from asyncio import current_task
+
 import pytest
 from sqlalchemy.ext.asyncio import (
-    create_async_engine,
+    AsyncSession,
+    async_scoped_session,
     async_sessionmaker,
-    async_scoped_session, AsyncSession)
-from asyncio import current_task
-from fastapi import Depends
+    create_async_engine,
+)
 
-test_url = "sqlite:///:memory:"
+test_url = "sqlite+aiosqlite:///:memory:"
 
 
 # ------ 测试用数据库相关部分 -------
 # 1. 创建引擎
+# SQLite 内存库不支持与 MySQL/PG 相同的部分连接池参数，仅保留兼容项
 engine = create_async_engine(
     test_url,
-    # 将输出所有执行SQL的日志（默认是关闭的）
     echo=True,
-    # 连接池大小（默认是5个）
-    pool_size=10,
-    # 允许连接池的最大的连接数（默认是10个）
-    max_overflow=20,
-    # 获得连接超时时间（默认为30s）
-    pool_timeout=10,
-    # 连接回收时间（默认是-1，代表永不回收）
-    pool_recycle=3600,
-    # 连接前是否预检查（默认为False）
-    pool_pre_ping=True,
 )
 AsyncSessionFactory = async_sessionmaker(
     bind=engine,
     autoflush=False,
     autocommit=False,
     expire_on_commit=False,  # 异步环境中通常设为False
-    class_=AsyncSession
+    class_=AsyncSession,
 )
 
 # 3. 使用async_scoped_session确保线程安全
 AsyncScopedSession = async_scoped_session(AsyncSessionFactory, scopefunc=current_task)
-
 
 
 async def get_session() -> AsyncSession:
@@ -53,8 +61,7 @@ async def get_session() -> AsyncSession:
 
 
 # ------ 夹具部分 ------
-@pytest.fixture(scope='session')
-def main_db_manager_in_memory(
-        session: AsyncSession = Depends(get_session),
-):
+@pytest.fixture(scope="session")
+def main_db_manager_in_memory() -> None:
+    """占位：后续可改为挂接内存库 AsyncSession 夹具。"""
     pass

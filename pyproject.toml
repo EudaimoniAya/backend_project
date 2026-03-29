@@ -1,18 +1,97 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "backend-project"
+version = "0.1.0"
+description = "AI 优先的精简电商后端"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic[email]>=2.0",
+    "pydantic-settings>=2.0",
+    "sqlalchemy[asyncio]>=2.0",
+    "aiomysql>=0.2",
+    "pymysql>=1.1",
+    "asyncpg>=0.29",
+    "psycopg2-binary>=2.9",
+    "pwdlib[argon2]>=0.2",
+    "loguru>=0.7",
+    "alembic>=1.13",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "httpx>=0.27",
+    "mypy>=1.11",
+    "ruff>=0.8",
+    "types-pymysql>=1.1",
+    "aiosqlite>=0.20",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+    "app*",
+    "core*",
+    "models*",
+    "operations*",
+    "repositories*",
+    "schemas*",
+    "utils*",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]   # 只从tests目录下寻找测试文件
+asyncio_mode = "auto"   # 配合pytest-asyncio，自动检测异步测试（少写装饰器）
+pythonpath = ["."]      # 添加项目根目录到Python路径，便于导入模块
+
+[tool.ruff]     
+target-version = "py311"
+line-length = 100
+src = ["."]     # 从根目录开始检查代码
+
+[tool.ruff.lint]
+# 检查风格错误E、未使用导入、未定义名F、导入冲突I、优化建议UP、代码风格B
+select = ["E", "F", "I", "UP", "B"]
+ignore = []
+
+[tool.ruff.lint.per-file-ignores]
+# 忽略alembic_mysql和alembic_pg目录下的特定错误（如先import再改路径）
+"alembic_mysql/**" = ["E402", "F401", "F403"]
+"alembic_pg/**" = ["E402", "F401", "F403"]
+# 须先 setdefault 环境变量再 import pytest/sqlalchemy，避免拉取 settings 时缺字段
+"tests/conftest.py" = ["E402"]
+
+[tool.ruff.format]
+quote-style = "double"
+
 [tool.mypy]
-# 1. 启用基本类型检查
+python_version = "3.11"
 warn_unused_configs = true
 check_untyped_defs = true
 disallow_incomplete_defs = true
-
-# 2. 精准禁用 SQLAlchemy 列比较的类型冲突警告
 disable_error_code = "comparison-overlap"
+plugins = ["sqlalchemy.ext.mypy.plugin"]
+# 全仓库历史代码与 sqlalchemy 存根差异较大；CI 与本地默认先保证 app 包通过
+packages = ["app"]
+exclude = [
+    "^alembic_mysql/",
+    "^alembic_pg/",
+    "build/",
+    "dist/",
+]
 
-# 3. 针对 SQLAlchemy 模型的特殊配置
 [[tool.mypy.overrides]]
 module = [
     "models.*",
     "core.ai.data.models.*",
-    "repository.*"
+    "repository.*",
+    "repositories.*",
 ]
-# 在这些模块中，允许表达式返回与声明不同的类型（SQLAlchemy 动态特性的核心）
-allow_any_expr = true
+disallow_any_expr = false

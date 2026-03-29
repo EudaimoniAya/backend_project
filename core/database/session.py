@@ -1,8 +1,8 @@
-from sqlalchemy.ext.asyncio import (
-    async_sessionmaker,
-    async_scoped_session, AsyncSession)
+from sqlalchemy.ext.asyncio.scoping import async_scoped_session
+from sqlalchemy.ext.asyncio.session import AsyncSession, async_sessionmaker
 from asyncio import current_task
-from engine import engine
+
+from core.database.engine import engine
 
 AsyncSessionFactory = async_sessionmaker(
     bind=engine,
