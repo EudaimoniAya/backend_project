@@ -10,7 +10,7 @@ __pycache__/
 .ruff_cache/
 .venv/
 testings/
-backend-project.egg-info/
+backend_project.egg-info/
 
 # 忽略所有环境的配置文件
 alembic_mysql/alembic.ini

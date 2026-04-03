@@ -47,22 +47,20 @@ include = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]   # 只从tests目录下寻找测试文件
-asyncio_mode = "auto"   # 配合pytest-asyncio，自动检测异步测试（少写装饰器）
-pythonpath = ["."]      # 添加项目根目录到Python路径，便于导入模块
+testpaths = ["tests"]
+asyncio_mode = "auto"
+pythonpath = ["."]
 
-[tool.ruff]     
+[tool.ruff]
 target-version = "py311"
 line-length = 100
-src = ["."]     # 从根目录开始检查代码
+src = ["."]
 
 [tool.ruff.lint]
-# 检查风格错误E、未使用导入、未定义名F、导入冲突I、优化建议UP、代码风格B
 select = ["E", "F", "I", "UP", "B"]
 ignore = []
 
 [tool.ruff.lint.per-file-ignores]
-# 忽略alembic_mysql和alembic_pg目录下的特定错误（如先import再改路径）
 "alembic_mysql/**" = ["E402", "F401", "F403"]
 "alembic_pg/**" = ["E402", "F401", "F403"]
 # 须先 setdefault 环境变量再 import pytest/sqlalchemy，避免拉取 settings 时缺字段

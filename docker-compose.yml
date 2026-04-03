@@ -1,0 +1,65 @@
+# v1.0 骨架：MySQL（主业务）+ PostgreSQL（现有会话引擎与向量库 URL）+ 应用
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MAIN_DB_PASSWORD:-devpass}
+      MYSQL_DATABASE: ${MAIN_DB_NAME:-appdb}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${SESSION_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${SESSION_DB_PASSWORD:-devpass}
+      POSTGRES_DB: ${SESSION_DB_NAME:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-dummy}
+      MAIN_DB_HOST: mysql
+      MAIN_DB_PORT: "3306"
+      MAIN_DB_USER: root
+      MAIN_DB_PASSWORD: ${MAIN_DB_PASSWORD:-devpass}
+      MAIN_DB_NAME: ${MAIN_DB_NAME:-appdb}
+      SESSION_DB_HOST: postgres
+      SESSION_DB_PORT: "5432"
+      SESSION_DB_USER: ${SESSION_DB_USER:-postgres}
+      SESSION_DB_PASSWORD: ${SESSION_DB_PASSWORD:-devpass}
+      SESSION_DB_NAME: ${SESSION_DB_NAME:-postgres}
+      PRODUCT_VECTOR_DB_HOST: postgres
+      PRODUCT_VECTOR_DB_PORT: "5432"
+      PRODUCT_VECTOR_DB_USER: ${SESSION_DB_USER:-postgres}
+      PRODUCT_VECTOR_DB_PASSWORD: ${SESSION_DB_PASSWORD:-devpass}
+      PRODUCT_VECTOR_DB_NAME: ${PRODUCT_VECTOR_DB_NAME:-postgres}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
+  pg_data:
