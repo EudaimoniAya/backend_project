@@ -5,7 +5,8 @@ from sqlalchemy.orm import selectinload
 from typing import Optional, List
 
 from models.product import Product
-from models.user import User, UserRole
+from models.shop import Shop
+from models.user import User
 from schemas.product import ProductCreateSchema, ProductUpdateSchema
 
 
@@ -85,11 +86,24 @@ class ProductRepository:
         product_dict = product_data.model_dump()
         product_dict['seller_id'] = seller_id
 
+        shop_stmt = select(Shop.id).where(Shop.owner_user_id == seller_id)
+        shop_res = await self.session.execute(shop_stmt)
+        shop_id = shop_res.scalar_one_or_none()
+        if shop_id is None:
+            # 尚无店铺时自动建店，与迁移回填策略一致
+            user = await self.session.get(User, seller_id)
+            shop_name = f"{user.username}的店铺" if user else f"店铺{seller_id}"
+            shop = Shop(owner_user_id=seller_id, name=shop_name)
+            self.session.add(shop)
+            await self.session.flush()
+            shop_id = shop.id
+        product_dict['shop_id'] = shop_id
+
         product = Product(**product_dict)
         self.session.add(product)
 
         await self.session.flush()
-        await self.session.refresh(product, ['category', 'seller'])
+        await self.session.refresh(product, ['category', 'seller', 'shop'])
 
         return product
 
